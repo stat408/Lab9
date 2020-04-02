@@ -1,0 +1,101 @@
+---
+title: "Lab9"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+## Read Covid19 Data
+
+First read in the data and convert from wide to long.
+```{r, message = F, echo = F}
+library(readr)
+library(tidyr)
+library(dplyr)
+library(knitr)
+covid_cases <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv") %>% select(-Lat, -Long) %>% rename(state = `Province/State`, country = `Country/Region` )
+
+covid_cases_long <- covid_cases %>% pivot_longer(-c(country,state), names_to = "date", values_to = "count" )
+```
+
+
+### Interactive Table
+
+Allow users to select the date and number of countries to show
+
+
+```{r covidtable, echo=FALSE}
+inputPanel(
+  selectInput("date", label = "Date:",
+              choices = c( '3/26/20', '3/27/20', '3/28/20','3/29/20','3/30/20'), selected = '3/30/20'))
+
+DT::renderDataTable(
+  covid_cases_long %>% group_by(country) %>% filter(date == input$date) %>% group_by(country, date) %>% summarize(`total cases` = sum(count)) %>% arrange(desc(`total cases`)) 
+)
+```
+
+
+## Interactive Figure
+
+Filter by state / province and show curves, maybe include colors and/or faceting?
+
+You can embed Shiny inputs and outputs in your document. Outputs are automatically updated whenever inputs change.  This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot.
+
+
+```{r}
+library(lubridate)
+US_data <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv") %>% select(-c(UID, iso2, iso3, FIPS,Lat,Long_, code3, Country_Region, Combined_Key))
+
+US_long <- US_data %>% pivot_longer(-c(Admin2,Province_State), names_to = "date", values_to = "count" )
+
+
+```
+
+```{r eruptions, echo=FALSE}
+inputPanel(
+  
+  selectInput("state", label = "State:",
+              choices = unique(US_long$Province_State), selected = 'Montana')
+)
+
+renderPlot({
+  US_long %>% dplyr::filter(Province_State == input$state) %>%  dplyr::mutate(date = mdy(date)) %>% dplyr::group_by(date) %>% dplyr::summarize(count = sum(count)) %>% ggplot2::ggplot(aes(y = count, x = date)) + ggplot2::geom_line() + theme_bw() + ggtitle(paste('Total Diagnosed Covid19 cases in ', input$state ))
+
+})
+```
+
+
+## STATIC MT Plot
+
+```{r, eval = T, echo = F}
+library(tidyverse)
+library(urbnmapr)
+
+county_data <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv") %>% select(-c(UID, iso2, iso3, Province_State,Lat,Long_, code3, Country_Region, Combined_Key, Admin2))
+
+
+county_long <- county_data %>% pivot_longer(-c(FIPS), names_to = "date", values_to = "count" ) %>% filter(date == '3/29/20')
+
+
+df_county <- tibble(FIPS = county.fips$fips)
+
+df_county <- full_join(df_county, county_long, by = "FIPS") %>% filter(!is.na(FIPS), !is.na(count)) 
+
+
+mt <- urbnmapr::counties %>% filter(state_abbv == 'MT') %>% rename(FIPS = county_fips) %>% mutate(FIPS = as.numeric(FIPS))
+mt_map <- left_join(mt, df_county)
+
+mt_map$color <- gray(mt_map$count / max(mt_map$count))
+
+
+ggplot() +  geom_polygon(data = mt_map, mapping = aes(x = long, y = lat, group = group, fill = count ),
+		            color = "gray") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  scale_fill_gradient(low = "white", high = "red")
+
+
+```
+
