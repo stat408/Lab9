@@ -1,31 +1,28 @@
 # Lab9
 
-lease turn in a file with your output and a file containing your SAS code.  
+## Lab Overview
 
+The entire lab will be worth 20 points. Clarity of code, including comments and interpretable variables names, along with thoughtful writing with an emphasis on concise interpretations will be important. 
 
 ## Questions
+Answer the following questions in this R Markdown document. Please include code where necessary.
 
-### 1. Using PROC MEANS (5 points)
+### 1. Yahtzee
+#### a. (5 points)
+Implement a Monte Carlo procedure to estimate the probability of rolling a Yahtzee (5 dice all with the same value) with a single roll of the dice.
 
-a. Using a LIBNAME reference, load the housing file.
+#### b (5 points)
+Suppose that you have currently rolled `1, 3, 3, 6, 4`. If you keep the pair of 3's and re-roll the other three dice, what is the probability of rolling a Yahtzee in the next roll?
 
-b. Create a new SAS data set that only contains homes in MT, CO, ID, and WY.
-
-c. Use `PROC MEANS` to summarize the price and square footage of the homes **by state**. Note this will require sorting the data set prior to using `PROC MEANS`.
-
-
-### 2. Creating a data set (5 points)
-
-a. Create a data set consisting of your name:
-- name,
-- current location, and 
-- favorite stay-at-home activity.
-
-Also add my info to your dataset
-- name: Andy Hoegh
-- current location: Bozeman
-- favorite stay-at-home activity: cooking
-
-b. Print this data set and make sure to include an informative title.
+(For those of you that play Yahtzee, you know that you get a total of three rolls. You could also simulated a third roll too.)
 
 
+### 2. Black-Jack
+#### a. (5 points)
+Implement a procedure to estimate the probability of being dealt black-jack (2 cards that total 21). If you are unfamiliar with black jack, wikipedia provides a nice overview.
+
+
+#### b. (5 points)
+Assume you have been dealt the 10 of hearts and the 4 of diamonds and the dealer has a 6 showing. By standard rules, you win if your card total is higher than the dealer, but less than or equal to 21. You have the option to *hit* which means adding more cards to your total, but if you go over 21 you **bust** and automatically lose.
+
+Describe in words (or pseudeocode) how you would simulate this process to estimate the probability of winning by hitting and staying.
